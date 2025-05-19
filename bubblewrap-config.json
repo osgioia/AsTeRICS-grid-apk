@@ -1,0 +1,23 @@
+{
+  "manifestLocation": "https://grid.asterics.eu/manifest.webmanifest",
+  "host": "grid.asterics.eu",
+  "startUrl": "/",
+  "name": "AsTeRICS Grid",
+  "shortName": "Grid",
+  "display": "standalone",
+  "backgroundColor": "#ffffff",
+  "themeColor": "#ffffff",
+  "navigationColor": "#ffffff",
+  "navigationColorDark": "#000000",
+  "navigationDividerColor": "#cccccc",
+  "navigationDividerColorDark": "#444444",
+  "orientation": "any",
+  "maskableIcon": true,
+  "splashScreenFadeOutDuration": 300,
+  "signing": {
+    "use": "none"
+  },
+  "packageId": "eu.asterics.grid",
+  "fallbackType": "customtabs",
+  "customTabsColorScheme": "system"
+}
