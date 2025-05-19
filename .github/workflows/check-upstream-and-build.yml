@@ -40,6 +40,12 @@ jobs:
           git commit -m "Update release version to ${{ steps.get_latest_release.outputs.latest_tag }}"
           git push
 
+      - name: Set up Java
+        uses: actions/setup-java@v3
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+
       - name: Install Node.js
         if: steps.get_latest_release.outputs.latest_tag != steps.get_stored.outputs.stored_tag
         uses: actions/setup-node@v3
@@ -52,7 +58,7 @@ jobs:
 
       - name: Init Bubblewrap
         if: steps.get_latest_release.outputs.latest_tag != steps.get_stored.outputs.stored_tag
-        run: bubblewrap init --config bubblewrap-config.json
+        run: echo | bubblewrap init --config bubblewrap-config.json
 
       - name: Build APK
         if: steps.get_latest_release.outputs.latest_tag != steps.get_stored.outputs.stored_tag
