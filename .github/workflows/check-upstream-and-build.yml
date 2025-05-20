@@ -22,7 +22,11 @@ jobs:
       - name: Get stored version
         id: get_stored
         run: |
-          STORED=$(cat .latest_release 2>/dev/null || echo "none")
+          if [ -f .latest_release ]; then
+            STORED=$(cat .latest_release)
+          else
+            STORED="none"
+          fi
           echo "stored_tag=$STORED" >> $GITHUB_OUTPUT
 
       - name: Store new release version
