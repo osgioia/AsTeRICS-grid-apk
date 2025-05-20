@@ -40,7 +40,7 @@ jobs:
 
       - name: Build APK from PWA
         if: steps.get_latest_release.outputs.latest_tag != steps.get_stored.outputs.stored_tag
-        uses: sharadcodes/pwa-to-apk-action@v1.0.0
+        uses: osgioia/pwa-to-apk-action@v1.0.0
         with:
           project-root-folder: "."  # Asegurate que el manifest.webmanifest esté acá
 
