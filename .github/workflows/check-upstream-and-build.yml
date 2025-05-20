@@ -46,11 +46,10 @@ jobs:
           distribution: 'temurin'
           java-version: '17'
 
-      - name: Set up Android SDK
-        uses: reactivecircus/android-emulator-runner@v2
-        with:
-          api-level: 30
-          script: echo "SDK installed"
+      - name: Install Android SDK components
+        run: |
+          yes | sdkmanager --licenses
+          sdkmanager --install "build-tools;35.0.0" "platform-tools" "platforms;android-30"
 
       - name: Install Node.js
         if: steps.get_latest_release.outputs.latest_tag != steps.get_stored.outputs.stored_tag
