@@ -1,0 +1,20 @@
+{
+  "name": "AsTeRICS Grid",
+  "shortName": "Grid",
+  "startUrl": "/AsTeRICS-Grid/",
+  "themeColor": "#2196f3",
+  "backgroundColor": "#ffffff",
+  "navigationColor": "#ffffff",
+  "navigationColorDark": "#000000",
+  "navigationDividerColor": "#ffffff",
+  "display": "standalone",
+  "orientation": "portrait",
+  "packageId": "org.astericsgrid.app",
+  "host": "asterics.github.io",
+  "fallbackType": "customtabs",
+  "features": {
+    "playBilling": false,
+    "locationDelegation": false
+  },
+  "generatorApp": "@bubblewrap/cli"
+}
