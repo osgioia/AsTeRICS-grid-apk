@@ -46,6 +46,12 @@ jobs:
           distribution: 'temurin'
           java-version: '17'
 
+      - name: Set up Android SDK
+        uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: 30
+          script: echo "SDK installed"
+
       - name: Install Node.js
         if: steps.get_latest_release.outputs.latest_tag != steps.get_stored.outputs.stored_tag
         uses: actions/setup-node@v3
@@ -58,7 +64,10 @@ jobs:
 
       - name: Init Bubblewrap
         if: steps.get_latest_release.outputs.latest_tag != steps.get_stored.outputs.stored_tag
-        run: echo | bubblewrap init --config bubblewrap-config.json
+        env:
+          JAVA_HOME: ${{ env.JAVA_HOME }}
+          ANDROID_HOME: ${{ env.ANDROID_HOME }}
+        run: yes | bubblewrap init --config bubblewrap-config.json
 
       - name: Build APK
         if: steps.get_latest_release.outputs.latest_tag != steps.get_stored.outputs.stored_tag
