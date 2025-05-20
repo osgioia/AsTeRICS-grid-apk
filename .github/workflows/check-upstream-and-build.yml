@@ -46,11 +46,6 @@ jobs:
           distribution: 'temurin'
           java-version: '17'
 
-      - name: Install Android SDK components
-        run: |
-          yes | sdkmanager --licenses
-          sdkmanager --install "build-tools;35.0.0" "platform-tools" "platforms;android-30"
-
       - name: Install Node.js
         if: steps.get_latest_release.outputs.latest_tag != steps.get_stored.outputs.stored_tag
         uses: actions/setup-node@v3
@@ -61,16 +56,33 @@ jobs:
         if: steps.get_latest_release.outputs.latest_tag != steps.get_stored.outputs.stored_tag
         run: npm install -g @bubblewrap/cli
 
+      - name: Set up Android SDK
+        if: steps.get_latest_release.outputs.latest_tag != steps.get_stored.outputs.stored_tag
+        run: |
+          mkdir -p "$HOME/android-sdk/cmdline-tools"
+          cd "$HOME/android-sdk/cmdline-tools"
+          curl -sSLo commandlinetools.zip https://dl.google.com/android/repository/commandlinetools-linux-10406996_latest.zip
+          unzip -q commandlinetools.zip
+          rm commandlinetools.zip
+          mv cmdline-tools latest
+          export ANDROID_HOME=$HOME/android-sdk
+          export PATH=$ANDROID_HOME/cmdline-tools/latest/bin:$ANDROID_HOME/platform-tools:$PATH
+          yes | sdkmanager --licenses
+          sdkmanager --install "build-tools;35.0.0" "platform-tools" "platforms;android-30"
+        env:
+          ANDROID_HOME: ${{ github.workspace }}/android-sdk
+
       - name: Init Bubblewrap
         if: steps.get_latest_release.outputs.latest_tag != steps.get_stored.outputs.stored_tag
+        run: echo | bubblewrap init --config bubblewrap-config.json
         env:
-          JAVA_HOME: ${{ env.JAVA_HOME }}
-          ANDROID_HOME: ${{ env.ANDROID_HOME }}
-        run: yes | bubblewrap init --config bubblewrap-config.json
+          ANDROID_HOME: ${{ github.workspace }}/android-sdk
 
       - name: Build APK
         if: steps.get_latest_release.outputs.latest_tag != steps.get_stored.outputs.stored_tag
         run: bubblewrap build
+        env:
+          ANDROID_HOME: ${{ github.workspace }}/android-sdk
 
       - name: Upload release to GitHub
         if: steps.get_latest_release.outputs.latest_tag != steps.get_stored.outputs.stored_tag
