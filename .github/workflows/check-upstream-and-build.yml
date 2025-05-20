@@ -2,7 +2,7 @@ name: Check AsTeRICS Grid Release and Build APK
 
 on:
   schedule:
-    - cron: '0 6 1,15 * *' # Se ejecuta el día 1 y 15 de cada mes a las 6:00 UTC
+    - cron: '0 6 1,15 * *'
   workflow_dispatch:
 
 jobs:
@@ -17,7 +17,6 @@ jobs:
         id: get_latest_release
         run: |
           LATEST=$(curl -s https://api.github.com/repos/asterics/AsTeRICS-Grid/releases/latest | jq -r .tag_name)
-          echo "Latest tag: $LATEST"
           echo "latest_tag=$LATEST" >> $GITHUB_OUTPUT
 
       - name: Get stored version
@@ -26,12 +25,11 @@ jobs:
           STORED=$(cat .latest_release 2>/dev/null || echo "none")
           echo "stored_tag=$STORED" >> $GITHUB_OUTPUT
 
-      - name: Compare versions
+      - name: Store new release version
         if: steps.get_latest_release.outputs.latest_tag != steps.get_stored.outputs.stored_tag
-        run: |
-          echo "${{ steps.get_latest_release.outputs.latest_tag }}" > .latest_release
+        run: echo "${{ steps.get_latest_release.outputs.latest_tag }}" > .latest_release
 
-      - name: Commit version update
+      - name: Commit version file
         if: steps.get_latest_release.outputs.latest_tag != steps.get_stored.outputs.stored_tag
         run: |
           git config user.name "github-actions"
@@ -40,46 +38,24 @@ jobs:
           git commit -m "Update release version to ${{ steps.get_latest_release.outputs.latest_tag }}"
           git push
 
-      - name: Set up Java
-        uses: actions/setup-java@v3
+      - name: Build APK from PWA
+        if: steps.get_latest_release.outputs.latest_tag != steps.get_stored.outputs.stored_tag
+        uses: sharadcodes/pwa-to-apk-action@v1.0.0
         with:
-          distribution: 'temurin'
-          java-version: '17'
+          project-root-folder: "."  # Asegurate que el manifest.webmanifest esté acá
 
-      - name: Install Node.js
-        if: steps.get_latest_release.outputs.latest_tag != steps.get_stored.outputs.stored_tag
-        uses: actions/setup-node@v3
-        with:
-          node-version: '18'
-
-      - name: Install Bubblewrap
-        if: steps.get_latest_release.outputs.latest_tag != steps.get_stored.outputs.stored_tag
-        run: npm install -g @bubblewrap/cli
-
-      - name: Init Bubblewrap
-        if: steps.get_latest_release.outputs.latest_tag != steps.get_stored.outputs.stored_tag
-        run: echo | bubblewrap init --config bubblewrap-config.json
-
-      - name: Build APK
-        if: steps.get_latest_release.outputs.latest_tag != steps.get_stored.outputs.stored_tag
-        run: bubblewrap build
-
-      - name: List APK files (debug)
-        if: steps.get_latest_release.outputs.latest_tag != steps.get_stored.outputs.stored_tag
-        run: find . -name "*.apk"
-
-      - name: Create tag for new release
+      - name: Create Git tag
         if: steps.get_latest_release.outputs.latest_tag != steps.get_stored.outputs.stored_tag
         run: |
           git tag ${{ steps.get_latest_release.outputs.latest_tag }}
           git push origin ${{ steps.get_latest_release.outputs.latest_tag }}
 
-      - name: Upload release to GitHub
+      - name: Release APK
         if: steps.get_latest_release.outputs.latest_tag != steps.get_stored.outputs.stored_tag
         uses: softprops/action-gh-release@v1
         with:
           tag_name: ${{ steps.get_latest_release.outputs.latest_tag }}
           name: "APK for AsTeRICS Grid ${{ steps.get_latest_release.outputs.latest_tag }}"
-          files: ./build/*.apk
+          files: '*.apk'
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
