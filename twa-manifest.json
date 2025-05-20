@@ -12,7 +12,7 @@
   "packageId": "org.astericsgrid.app",
   "host": "asterics.github.io",
   "fallbackType": "customtabs",
-  "iconUrl": "https://asterics.github.io/AsTeRICS-Grid/icon-512x512.png",
+  "iconUrl": "https://grid.asterics.eu/app/img/app-icons/Icon-512.png",
   "features": {
     "playBilling": false,
     "locationDelegation": false
