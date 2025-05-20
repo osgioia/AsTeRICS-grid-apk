@@ -2,7 +2,7 @@ name: Check AsTeRICS Grid Release and Build APK
 
 on:
   schedule:
-    - cron: '0 6 1,15 * *'
+    - cron: '0 6 1,15 * *' # Se ejecuta el día 1 y 15 de cada mes a las 6:00 UTC
   workflow_dispatch:
 
 jobs:
@@ -56,33 +56,23 @@ jobs:
         if: steps.get_latest_release.outputs.latest_tag != steps.get_stored.outputs.stored_tag
         run: npm install -g @bubblewrap/cli
 
-      - name: Set up Android SDK
-        if: steps.get_latest_release.outputs.latest_tag != steps.get_stored.outputs.stored_tag
-        run: |
-          mkdir -p "$HOME/android-sdk/cmdline-tools"
-          cd "$HOME/android-sdk/cmdline-tools"
-          curl -sSLo commandlinetools.zip https://dl.google.com/android/repository/commandlinetools-linux-10406996_latest.zip
-          unzip -q commandlinetools.zip
-          rm commandlinetools.zip
-          mv cmdline-tools latest
-          export ANDROID_HOME=$HOME/android-sdk
-          export PATH=$ANDROID_HOME/cmdline-tools/latest/bin:$ANDROID_HOME/platform-tools:$PATH
-          yes | sdkmanager --licenses
-          sdkmanager --install "build-tools;35.0.0" "platform-tools" "platforms;android-30"
-        env:
-          ANDROID_HOME: ${{ github.workspace }}/android-sdk
-
       - name: Init Bubblewrap
         if: steps.get_latest_release.outputs.latest_tag != steps.get_stored.outputs.stored_tag
         run: echo | bubblewrap init --config bubblewrap-config.json
-        env:
-          ANDROID_HOME: ${{ github.workspace }}/android-sdk
 
       - name: Build APK
         if: steps.get_latest_release.outputs.latest_tag != steps.get_stored.outputs.stored_tag
         run: bubblewrap build
-        env:
-          ANDROID_HOME: ${{ github.workspace }}/android-sdk
+
+      - name: List APK files (debug)
+        if: steps.get_latest_release.outputs.latest_tag != steps.get_stored.outputs.stored_tag
+        run: find . -name "*.apk"
+
+      - name: Create tag for new release
+        if: steps.get_latest_release.outputs.latest_tag != steps.get_stored.outputs.stored_tag
+        run: |
+          git tag ${{ steps.get_latest_release.outputs.latest_tag }}
+          git push origin ${{ steps.get_latest_release.outputs.latest_tag }}
 
       - name: Upload release to GitHub
         if: steps.get_latest_release.outputs.latest_tag != steps.get_stored.outputs.stored_tag
@@ -90,6 +80,6 @@ jobs:
         with:
           tag_name: ${{ steps.get_latest_release.outputs.latest_tag }}
           name: "APK for AsTeRICS Grid ${{ steps.get_latest_release.outputs.latest_tag }}"
-          files: "**/*.apk"
+          files: ./build/*.apk
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
