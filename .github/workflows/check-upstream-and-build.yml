@@ -47,13 +47,33 @@ jobs:
         if: steps.get_latest_release.outputs.latest_tag != steps.get_stored.outputs.stored_tag
         uses: osgioia/pwa-to-apk-action@v1.0.1
         with:
-          project-root-folder: "."  # Asegurate que el manifest.webmanifest esté acá
+          project-root-folder: "."
 
-      - name: Create Git tag
+      - name: Decode keystore
         if: steps.get_latest_release.outputs.latest_tag != steps.get_stored.outputs.stored_tag
         run: |
-          git tag ${{ steps.get_latest_release.outputs.latest_tag }}
-          git push origin ${{ steps.get_latest_release.outputs.latest_tag }}
+          echo "${{ secrets.SIGNING_KEY_BASE64 }}" | base64 -d > my-release-key.jks
+
+      - name: Sign APK
+        if: steps.get_latest_release.outputs.latest_tag != steps.get_stored.outputs.stored_tag
+        run: |
+          jarsigner -verbose \
+            -sigalg SHA256withRSA -digestalg SHA-256 \
+            -keystore my-release-key.jks \
+            -storepass "${{ secrets.SIGNING_STORE_PASSWORD }}" \
+            -keypass "${{ secrets.SIGNING_KEY_PASSWORD }}" \
+            ./output/app-release-unsigned-aligned.apk "${{ secrets.SIGNING_KEY_ALIAS }}"
+
+      - name: Verify APK signature
+        if: steps.get_latest_release.outputs.latest_tag != steps.get_stored.outputs.stored_tag
+        run: |
+          jarsigner -verify -verbose -certs ./output/app-release-unsigned-aligned.apk
+
+      - name: Rename APK with version
+        if: steps.get_latest_release.outputs.latest_tag != steps.get_stored.outputs.stored_tag
+        run: |
+          VERSION=${{ steps.get_latest_release.outputs.latest_tag }}
+          mv ./output/app-release-unsigned-aligned.apk ./output/AsTeRICS-Grid-${VERSION}.apk
 
       - name: Release APK
         if: steps.get_latest_release.outputs.latest_tag != steps.get_stored.outputs.stored_tag
@@ -61,6 +81,6 @@ jobs:
         with:
           tag_name: ${{ steps.get_latest_release.outputs.latest_tag }}
           name: "APK for AsTeRICS Grid ${{ steps.get_latest_release.outputs.latest_tag }}"
-          files: '*.apk'
+          files: ./output/AsTeRICS-Grid-${{ steps.get_latest_release.outputs.latest_tag }}.apk
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
