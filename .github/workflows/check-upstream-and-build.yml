@@ -55,29 +55,40 @@ jobs:
         run: |
           echo "${{ secrets.SIGNING_KEY_BASE64 }}" | base64 -d > my-release-key.jks
 
+      - name: Align APK
+        if: steps.get_latest_release.outputs.latest_tag != steps.get_stored.outputs.stored_tag
+        run: |
+          zipalign -v -p 4 ./app-release-unsigned-aligned.apk ./app-release-aligned.apk
+
       - name: Sign APK
         if: steps.get_latest_release.outputs.latest_tag != steps.get_stored.outputs.stored_tag
         run: |
-          jarsigner -verbose \
-            -sigalg SHA256withRSA -digestalg SHA-256 \
-            -keystore my-release-key.jks \
-            -storepass "${{ secrets.SIGNING_STORE_PASSWORD }}" \
-            -keypass "${{ secrets.SIGNING_KEY_PASSWORD }}" \
-            ./app-release-unsigned-aligned.apk "${{ secrets.SIGNING_KEY_ALIAS }}"
+          apksigner sign \
+            --ks my-release-key.jks \
+            --ks-key-alias "${{ secrets.SIGNING_KEY_ALIAS }}" \
+            --ks-pass pass:"${{ secrets.SIGNING_STORE_PASSWORD }}" \
+            --key-pass pass:"${{ secrets.SIGNING_KEY_PASSWORD }}" \
+            --out ./app-release-signed.apk \
+            ./app-release-aligned.apk
 
       - name: Verify APK signature
         if: steps.get_latest_release.outputs.latest_tag != steps.get_stored.outputs.stored_tag
-        run: |
-          jarsigner -verify -verbose -certs ./app-release-unsigned-aligned.apk
+        run: apksigner verify --verbose ./app-release-signed.apk
 
       - name: Rename APK with version and timestamp
         if: steps.get_latest_release.outputs.latest_tag != steps.get_stored.outputs.stored_tag
         run: |
           RAW_TAG="${{ steps.get_latest_release.outputs.latest_tag }}"
-          TAG=$(echo "$RAW_TAG" | tr -d '+/:')  # Elimina + / :
+          TAG=$(echo "$RAW_TAG" | tr -d '+/:')
           DATE="build-$(date +"%Y-%m-%d-%H.%M-%z" | tr -d '+')"
-          mv ./app-release-unsigned-aligned.apk "./AsTeRICS-Grid-${TAG}-${DATE}.apk"
-      
+          mv ./app-release-signed.apk "./AsTeRICS-Grid-${TAG}-${DATE}.apk"
+
+      - name: Create Git tag
+        if: steps.get_latest_release.outputs.latest_tag != steps.get_stored.outputs.stored_tag
+        run: |
+          git tag ${{ steps.get_latest_release.outputs.latest_tag }}
+          git push origin ${{ steps.get_latest_release.outputs.latest_tag }}
+
       - name: Release APK
         if: steps.get_latest_release.outputs.latest_tag != steps.get_stored.outputs.stored_tag
         uses: softprops/action-gh-release@v1
