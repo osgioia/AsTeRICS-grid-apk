@@ -70,6 +70,9 @@ jobs:
         run: |
           jarsigner -verify -verbose -certs ./app-release-unsigned-aligned.apk
 
+      - name: List files after build
+        run: ls -R
+
       - name: Rename APK with version and timestamp
         if: steps.get_latest_release.outputs.latest_tag != steps.get_stored.outputs.stored_tag
         run: |
