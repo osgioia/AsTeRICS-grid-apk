@@ -55,26 +55,6 @@ jobs:
         run: |
           echo "${{ secrets.SIGNING_KEY_BASE64 }}" | base64 -d > my-release-key.jks
 
-      - name: Align APK
-        if: steps.get_latest_release.outputs.latest_tag != steps.get_stored.outputs.stored_tag
-        run: |
-          zipalign -v -p 4 ./app-release-unsigned-aligned.apk ./app-release-aligned.apk
-
-      - name: Sign APK
-        if: steps.get_latest_release.outputs.latest_tag != steps.get_stored.outputs.stored_tag
-        run: |
-          apksigner sign \
-            --ks my-release-key.jks \
-            --ks-key-alias "${{ secrets.SIGNING_KEY_ALIAS }}" \
-            --ks-pass pass:"${{ secrets.SIGNING_STORE_PASSWORD }}" \
-            --key-pass pass:"${{ secrets.SIGNING_KEY_PASSWORD }}" \
-            --out ./app-release-signed.apk \
-            ./app-release-aligned.apk
-
-      - name: Verify APK signature
-        if: steps.get_latest_release.outputs.latest_tag != steps.get_stored.outputs.stored_tag
-        run: apksigner verify --verbose ./app-release-signed.apk
-
       - name: Rename APK with version and timestamp
         if: steps.get_latest_release.outputs.latest_tag != steps.get_stored.outputs.stored_tag
         run: |
