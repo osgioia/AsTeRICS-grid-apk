@@ -70,18 +70,19 @@ jobs:
         run: |
           jarsigner -verify -verbose -certs ./app-release-unsigned-aligned.apk
 
-      - name: Rename APK with version
+      - name: Rename APK with version and timestamp
         if: steps.get_latest_release.outputs.latest_tag != steps.get_stored.outputs.stored_tag
         run: |
-          VERSION=${{ steps.get_latest_release.outputs.latest_tag }}
-          mv ./app-release-unsigned-aligned.apk ./AsTeRICS-Grid-${VERSION}.apk
-
+          TAG="${{ steps.get_latest_release.outputs.latest_tag }}"
+          DATE="build-$(date +"%Y-%m-%d-%H.%M-%z" | tr -d '+')"
+          mv ./app-release-unsigned-aligned.apk "./AsTeRICS-Grid-${TAG}-${DATE}.apk"
+      
       - name: Release APK
         if: steps.get_latest_release.outputs.latest_tag != steps.get_stored.outputs.stored_tag
         uses: softprops/action-gh-release@v1
         with:
           tag_name: ${{ steps.get_latest_release.outputs.latest_tag }}
           name: "APK for AsTeRICS Grid ${{ steps.get_latest_release.outputs.latest_tag }}"
-          files: ./AsTeRICS-Grid-${{ steps.get_latest_release.outputs.latest_tag }}.apk
+          files: 'AsTeRICS-Grid-*.apk'
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
