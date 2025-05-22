@@ -68,13 +68,13 @@ jobs:
       - name: Verify APK signature
         if: steps.get_latest_release.outputs.latest_tag != steps.get_stored.outputs.stored_tag
         run: |
-          jarsigner -verify -verbose -certs ./output/app-release-unsigned-aligned.apk
+          jarsigner -verify -verbose -certs ./app-release-unsigned-aligned.apk
 
       - name: Rename APK with version
         if: steps.get_latest_release.outputs.latest_tag != steps.get_stored.outputs.stored_tag
         run: |
           VERSION=${{ steps.get_latest_release.outputs.latest_tag }}
-          mv ./output/app-release-unsigned-aligned.apk ./output/AsTeRICS-Grid-${VERSION}.apk
+          mv ./app-release-unsigned-aligned.apk ./AsTeRICS-Grid-${VERSION}.apk
 
       - name: Release APK
         if: steps.get_latest_release.outputs.latest_tag != steps.get_stored.outputs.stored_tag
@@ -82,6 +82,6 @@ jobs:
         with:
           tag_name: ${{ steps.get_latest_release.outputs.latest_tag }}
           name: "APK for AsTeRICS Grid ${{ steps.get_latest_release.outputs.latest_tag }}"
-          files: ./output/AsTeRICS-Grid-${{ steps.get_latest_release.outputs.latest_tag }}.apk
+          files: ./AsTeRICS-Grid-${{ steps.get_latest_release.outputs.latest_tag }}.apk
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
