@@ -63,7 +63,7 @@ jobs:
             -keystore my-release-key.jks \
             -storepass "${{ secrets.SIGNING_STORE_PASSWORD }}" \
             -keypass "${{ secrets.SIGNING_KEY_PASSWORD }}" \
-            ./output/app-release-unsigned-aligned.apk "${{ secrets.SIGNING_KEY_ALIAS }}"
+            ./app-release-unsigned-aligned.apk "${{ secrets.SIGNING_KEY_ALIAS }}"
 
       - name: Verify APK signature
         if: steps.get_latest_release.outputs.latest_tag != steps.get_stored.outputs.stored_tag
