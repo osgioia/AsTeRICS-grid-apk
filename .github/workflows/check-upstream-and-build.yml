@@ -44,16 +44,16 @@ jobs:
           git commit -m "Update release version to ${{ steps.get_latest_release.outputs.latest_tag }}"
           git push
 
+      - name: Decode keystore
+        if: steps.get_latest_release.outputs.latest_tag != steps.get_stored.outputs.stored_tag
+        run: |
+          echo "${{ secrets.SIGNING_KEY_BASE64 }}" | base64 -d > my-release-key.jks
+
       - name: Build APK from PWA
         if: steps.get_latest_release.outputs.latest_tag != steps.get_stored.outputs.stored_tag
         uses: osgioia/pwa-to-apk-action@v1.0.5
         with:
           project-root-folder: "."
-
-      - name: Decode keystore
-        if: steps.get_latest_release.outputs.latest_tag != steps.get_stored.outputs.stored_tag
-        run: |
-          echo "${{ secrets.SIGNING_KEY_BASE64 }}" | base64 -d > my-release-key.jks
 
       - name: Rename APK with version and timestamp
         if: steps.get_latest_release.outputs.latest_tag != steps.get_stored.outputs.stored_tag
