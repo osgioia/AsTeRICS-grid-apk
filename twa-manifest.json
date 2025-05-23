@@ -7,7 +7,7 @@
   "navigationColor": "#ffffff",
   "navigationColorDark": "#000000",
   "navigationDividerColor": "#ffffff",
-  "display": "standalone",
+  "display": "fullscreen",
   "orientation": "portrait",
   "packageId": "org.astericsgrid.app",
   "host": "asterics.github.io",
