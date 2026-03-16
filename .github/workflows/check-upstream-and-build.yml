@@ -17,7 +17,7 @@ jobs:
       - name: Get latest upstream release
         id: get_latest_release
         run: |
-          LATEST=$(curl -s https://api.github.com/repos/asterics/AsTeRICS-Grid/releases/latest | jq -r .tag_name)
+          LATEST=$(curl -s https://api.github.com/repositories/134720142/releases/latest | jq -r .tag_name)
           echo "latest_tag=$LATEST" >> $GITHUB_OUTPUT
 
       - name: Get stored version
